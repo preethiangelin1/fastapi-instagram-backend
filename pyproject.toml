@@ -1,0 +1,13 @@
+[project]
+name = "fastapi-instagram-backend"
+version = "0.1.0"
+requires-python = ">=3.14"
+dependencies = [
+    "aiofiles>=25.1.0",
+    "bcrypt>=5.0.0",
+    "fastapi[standard]>=0.141.1",
+    "passlib>=1.7.4",
+    "pwdlib[argon2]>=0.3.1",
+    "python-jose>=3.5.0",
+    "sqlalchemy>=2.0.52",
+]
