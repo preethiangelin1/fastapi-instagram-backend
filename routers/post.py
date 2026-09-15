@@ -44,18 +44,6 @@ def upload_image(image: UploadFile = File(...), current_user: UserAuth = Depends
         shutil.copyfileobj(image.file, buffer)
     return {"filename": path}
 
-@router.put('/{id}', response_model=PostResponse)
-def update_blog(id: int,  post: PostBase, db: Session = Depends(get_db)):
-    db_post = db.query(DbPost).filter(DbPost.id == id).first()
-    if db_post:
-        db_post.image_url = post.image_url
-        db_post.image_url_type = post.image_url_type
-        db_post.caption = post.caption
-        db.commit()
-        return db_post
-    else:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Post with id {id} not found")
-
 
 @router.delete('/{id}')
 def delete_post(id: int, db: Session = Depends(get_db), current_user: UserAuth = Depends(get_current_user)):
