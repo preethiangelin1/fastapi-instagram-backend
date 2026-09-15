@@ -1,18 +1,48 @@
+from pathlib import Path
+from uuid import uuid4
+import shutil
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from schemas import PostBase
 from db.models import DbPost
 from sqlalchemy import select
 from schemas import UserAuth
-from fastapi import HTTPException, status, Depends
+from fastapi import HTTPException, UploadFile, status, Depends
 from typing import Annotated
 from db.database import get_db
 
+MEDIA_POSTS_DIR = Path("media/posts")
+MEDIA_POSTS_DIR.mkdir(parents=True, exist_ok=True)
 
-async def create_post(db: AsyncSession, request: PostBase, current_user: UserAuth ):
+
+async def create_post(db: AsyncSession, image: UploadFile, caption: str, current_user: UserAuth ):
+    allowed_types = {
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+        "image/avif"
+    }
+
+    if image.content_type not in allowed_types:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Only JPEG, PNG, AVIF, WebP images are allowed",
+        )
+
+    extension = Path(image.filename).suffix.lower()
+    filename = f"{uuid4()}{extension}"
+
+    file_path = MEDIA_POSTS_DIR / filename
+
+        # Save image
+    with file_path.open("wb") as buffer:
+        shutil.copyfileobj(image.file, buffer)
+
+
     new_post = DbPost(
-        image_file=request.image_file,
-        caption=request.caption,
+        image_file=filename,
+        caption=caption,
         user_id=current_user.id
     )
 
