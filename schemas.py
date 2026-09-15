@@ -1,23 +1,34 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 from datetime import datetime
 from typing import List
 
 class UserBase(BaseModel):
-    username: str
-    email: str
-    password: str
+    username: str = Field(min_length=1, max_length=50)
+    email: EmailStr = Field(max_length=120)
 
-class UserResponse(BaseModel):
+class UserCreate(UserBase):
+    password: str = Field(min_length=8)
+
+class UserPublic(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
     username: str
-    email: str
-    class Config():
-        orm_mode = True
+    image_file: str | None
+    image_path: str
+
+class UserPrivate(UserPublic):
+    email: EmailStr
 
 class PostBase(BaseModel):
-    image_url: str
-    image_url_type: str
-    caption: str
-    user_id: int
+    caption: str = Field(min_length=1, max_length=100)
+    image_file: str
+    image_path: str
+
+
+class PostCreate(PostBase):
+    pass
+
 
 # For PostResponse
 class User(BaseModel):
@@ -27,30 +38,36 @@ class User(BaseModel):
 
 # For CommentResponse
 class Comment(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     text: str
     username: str
-    timestamp: datetime
-    class Config():
-        orm_mode = True
+    created_at: datetime
 
 class PostResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
-    image_url: str
-    image_url_type: str
     caption: str
-    timestamp: datetime
-    user: User
-    comments: List[Comment]
-    class Config():
-        orm_mode = True
+    image_file: str
+    image_path: str
+    created_at: datetime
+    author: UserPublic
+    comments: List[Comment] = []
+
 
 class UserAuth(BaseModel):
     id: int
     username: str
     email: str
 
+
+
+
 class CommentBase(BaseModel):
     username: str
     text: str
     post_id: int
-    
+
+class CommentCreate(CommentBase):
+    pass
