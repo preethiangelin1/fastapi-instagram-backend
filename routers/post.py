@@ -1,5 +1,5 @@
 from typing import List
-from fastapi import APIRouter, status, Depends, HTTPException, UploadFile,File
+from fastapi import APIRouter, Form, status, Depends, HTTPException, UploadFile,File
 from schemas import PostBase, PostResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from db.database import get_db
@@ -14,8 +14,13 @@ from auth.oauth2 import get_current_user
 router = APIRouter(prefix="/posts", tags=["post"])
 
 @router.post("/", response_model=PostResponse)
-async def create_post(post: PostBase, db: AsyncSession = Depends(get_db), current_user: UserAuth = Depends(get_current_user)):
-    return await db_post.create_post(db, post, current_user)
+async def create_post(
+        caption: str = Form(...),
+        image: UploadFile = File(...),
+        db: AsyncSession = Depends(get_db), 
+        current_user: UserAuth = Depends(get_current_user)):
+    
+    return await db_post.create_post(db, image, caption, current_user)
 
 @router.get("/", response_model=List[PostResponse])
 async def get_all_posts(db: AsyncSession = Depends(get_db)):

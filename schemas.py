@@ -61,13 +61,5 @@ class UserAuth(BaseModel):
     username: str
     email: str
 
-
-
-
-class CommentBase(BaseModel):
-    username: str
+class CommentCreate(BaseModel):
     text: str
-    post_id: int
-
-class CommentCreate(CommentBase):
-    pass

@@ -6,12 +6,13 @@ from fastapi import HTTPException, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from db.database import get_db
 from db import db_user
+from config import settings
  
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
  
-SECRET_KEY = 'f488234f5cbda08d7f3939325fabb0c1c364c98a3ec68da3c0708edacc3495a5'
-ALGORITHM = 'HS256'
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+SECRET_KEY = settings.secret_key
+ALGORITHM = settings.algorithm
+ACCESS_TOKEN_EXPIRE_MINUTES = settings.access_token_expire_minutes
  
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
   to_encode = data.copy()

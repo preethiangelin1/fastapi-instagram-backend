@@ -1,21 +1,23 @@
-from sqlalchemy.orm.session import Session
-from datetime import datetime
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from db.models import DbComment
-from schemas import CommentBase
+from schemas import CommentCreate, UserAuth
 
-def create(db: Session, request: CommentBase):
+async def create(db: AsyncSession, current_user:UserAuth, comment: CommentCreate, post_id:int):
     new_comment = DbComment(
-        text = request.text,
-        username = request.username,
-        post_id = request.post_id,
-        timestamp = datetime.now(),
+        text = comment.text,
+        username = current_user.username,
+        post_id = post_id,
     )
 
     db.add(new_comment)
-    db.commit()
-    db.refresh(new_comment)
+    await db.commit()
+    await db.refresh(new_comment)
 
     return new_comment
 
-def get_all(db: Session, post_id: int):
-    return db.query(DbComment).filter(DbComment.id == post_id).all()
+async def get_all(db: AsyncSession, post_id: int):
+    result = await db.execute(
+        select(DbComment).where(DbComment.post_id == post_id)
+    )
+    return result.scalars().all()
