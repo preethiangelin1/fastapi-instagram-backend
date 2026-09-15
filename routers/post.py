@@ -1,7 +1,7 @@
 from typing import List
 from fastapi import APIRouter, status, Depends, HTTPException, UploadFile,File
 from schemas import PostBase, PostResponse
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from db.database import get_db
 from db import db_post
 from db.models import DbPost
@@ -13,61 +13,32 @@ from auth.oauth2 import get_current_user
 
 router = APIRouter(prefix="/posts", tags=["post"])
 
-image_url_types = ["absolute", "relative"]
-
 @router.post("/", response_model=PostResponse)
-def create_post(post: PostBase, db: Session = Depends(get_db), current_user: UserAuth = Depends(get_current_user)):
-    if not post.image_url_type in image_url_types:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail="Parameter imagae_url_type can only take values absolute and relative")
-    return db_post.create_post(db, post)
+async def create_post(post: PostBase, db: AsyncSession = Depends(get_db), current_user: UserAuth = Depends(get_current_user)):
+    return await db_post.create_post(db, post, current_user)
 
 @router.get("/", response_model=List[PostResponse])
-def get_all_posts(db: Session = Depends(get_db)):
-    return db.query(DbPost).all()
+async def get_all_posts(db: AsyncSession = Depends(get_db)):
+    return await db_post.get_all(db)
 
-@router.get('/{id}')
-def get_post(id: int, db: Session = Depends(get_db)):
-    db_post = db.query(DbPost).filter(DbPost.id == id).first()
-    if not db_post:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Post with id {id} not found")
-    return db_post
+@router.get('/{id}', response_model=PostResponse)
+async def get_post(id: int, db: AsyncSession = Depends(get_db)):
+    return await db_post.get_post(id, db)
 
-@router.post("/image")
-def upload_image(image: UploadFile = File(...), current_user: UserAuth = Depends(get_current_user)):
+@router.post("/image-upload")
+async def upload_image(image: UploadFile = File(...), current_user: UserAuth = Depends(get_current_user)):
     letters = string.ascii_letters
     rand_str = "".join(random.choice(letters) for i in range(6))
     new = f"_{rand_str}."
     filename = new.join(image.filename.rsplit(".", 1))
-    path = f"images/{filename}"
+    path = f"media/posts/{filename}"
 
     with open(path, "w+b") as buffer:
         shutil.copyfileobj(image.file, buffer)
     return {"filename": path}
 
-@router.put('/{id}', response_model=PostResponse)
-def update_blog(id: int,  post: PostBase, db: Session = Depends(get_db)):
-    db_post = db.query(DbPost).filter(DbPost.id == id).first()
-    if db_post:
-        db_post.image_url = post.image_url
-        db_post.image_url_type = post.image_url_type
-        db_post.caption = post.caption
-        db.commit()
-        return db_post
-    else:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Post with id {id} not found")
 
-
-@router.delete('/{id}')
-def delete_post(id: int, db: Session = Depends(get_db), current_user: UserAuth = Depends(get_current_user)):
-    db_post = db.query(DbPost).filter(DbPost.id == id).first()
-    if not db_post:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Post with id {id} not found")
-
-    if db_post.user_id != current_user.id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"Only post creator can delete a post")
-    
-
-    db.delete(db_post)    
-    db.commit()    
-    return "Post deleted successfully"
+@router.delete('/{id}', status_code=status.HTTP_204_NO_CONTENT)
+async def delete_post(id: int, db: AsyncSession = Depends(get_db), current_user: UserAuth = Depends(get_current_user)):
+    return await db_post.delete_post(id, db, current_user)
 
