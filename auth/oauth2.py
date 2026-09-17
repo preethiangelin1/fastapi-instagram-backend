@@ -6,11 +6,12 @@ from fastapi import HTTPException, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from db.database import get_db
 from db import db_user
+from db.models import DbUser
 from config import settings
  
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
  
-SECRET_KEY = settings.secret_key
+SECRET_KEY = settings.secret_key.get_secret_value()
 ALGORITHM = settings.algorithm
 ACCESS_TOKEN_EXPIRE_MINUTES = settings.access_token_expire_minutes
  
@@ -41,3 +42,5 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db: An
   if user is None:
     raise credentials_exception
   return user
+
+CurrentUser = Annotated[DbUser, Depends(get_current_user)]
