@@ -48,7 +48,7 @@ async def create_post(db: AsyncSession, image: UploadFile, caption: str, current
 
     db.add(new_post)
     await db.commit()
-    await db.refresh(new_post, attribute_names=["author", "comments"])
+    await db.refresh(new_post, attribute_names=["author", "comments", "likes"])
 
     return new_post
 
@@ -56,7 +56,8 @@ async def get_all(db: AsyncSession):
     result = await db.execute(
             select(DbPost).options(
                 selectinload(DbPost.comments),
-                selectinload(DbPost.author)
+                selectinload(DbPost.author),
+                selectinload(DbPost.likes)
             )
         )
     return result.scalars().all()
@@ -66,7 +67,8 @@ async def get_post(id: int, db: AsyncSession):
             select(DbPost)
                 .options(
                     selectinload(DbPost.comments),
-                    selectinload(DbPost.author)
+                    selectinload(DbPost.author),
+                    selectinload(DbPost.likes)
                 )
                 .where(
                     DbPost.id == id,
