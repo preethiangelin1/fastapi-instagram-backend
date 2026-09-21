@@ -1,17 +1,12 @@
 from contextlib import asynccontextmanager
-
-
 from fastapi import FastAPI
 from routers import post, post_comment, user
-from db.database import engine, Base
+from db.database import engine
 from fastapi.staticfiles import StaticFiles
 from auth import authentication
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
-    # Startup
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
     yield
     # Shutdown
     await engine.dispose()
