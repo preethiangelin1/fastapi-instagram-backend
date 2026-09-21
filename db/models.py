@@ -56,10 +56,8 @@ class DbPost(Base):
         index=True,
     )
     author = relationship("DbUser", back_populates="posts")
-    comments = relationship(
-        "DbComment", 
-        back_populates="post",
-        cascade="all, delete-orphan")
+    comments = relationship("DbComment", back_populates="post", cascade="all, delete-orphan")
+    likes = relationship("DbLike", back_populates="post", cascade="all, delete-orphan")
 
     @property
     def image_path(self) -> str:
@@ -86,6 +84,27 @@ class DbComment(Base):
         index=True,
     )
     post = relationship("DbPost", back_populates="comments")
+
+class DbLike(Base):
+
+    __tablename__ = "likes"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    username: Mapped[str] = mapped_column(
+        ForeignKey("users.username"),
+        nullable=False,
+        index=True,
+    )
+    post_id: Mapped[int] = mapped_column(
+        ForeignKey("posts.id"),
+        nullable=False,
+        index=True,
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(UTC),
+    )
+    post = relationship("DbPost", back_populates="likes")
 
 class PasswordResetToken(Base):
     __tablename__ = "password_reset_tokens"
