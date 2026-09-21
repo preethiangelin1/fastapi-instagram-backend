@@ -44,6 +44,14 @@ class Comment(BaseModel):
     username: str
     created_at: datetime
 
+class Like(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    post_id: int
+    username: str
+    created_at: datetime
+
 class PostResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -54,6 +62,7 @@ class PostResponse(BaseModel):
     created_at: datetime
     author: UserPublic
     comments: List[Comment] = []
+    likes: List[Like] = []
 
 
 class UserAuth(BaseModel):
@@ -74,3 +83,5 @@ class ResetPasswordRequest(BaseModel):
 class ChangePasswordRequest(BaseModel):
     current_password: str
     new_password: str = Field(min_length=8)
+
+    
