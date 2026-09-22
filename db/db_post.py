@@ -11,6 +11,7 @@ from schemas import UserAuth
 from fastapi import HTTPException, UploadFile, status, Depends
 from typing import Annotated
 from db.database import get_db
+from integrations.s3 import upload_post_image, delete_post_image
 
 MEDIA_POSTS_DIR = Path("media/posts")
 MEDIA_POSTS_DIR.mkdir(parents=True, exist_ok=True)
@@ -32,13 +33,9 @@ async def create_post(db: AsyncSession, image: UploadFile, caption: str, current
 
     extension = Path(image.filename).suffix.lower()
     filename = f"{uuid4()}{extension}"
+    file_bytes = await image.read()
 
-    file_path = MEDIA_POSTS_DIR / filename
-
-        # Save image
-    with file_path.open("wb") as buffer:
-        shutil.copyfileobj(image.file, buffer)
-
+    await upload_post_image(file_bytes, filename)
 
     new_post = DbPost(
         image_file=filename,
@@ -101,6 +98,8 @@ async def delete_post(id: int, db:  Annotated[AsyncSession, Depends(get_db)], cu
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized to delete this post",
         )
+
+    await delete_post_image(existing_post.image_file)
 
     await db.delete(existing_post)
     await db.commit()

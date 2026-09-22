@@ -1,5 +1,6 @@
 from datetime import UTC, datetime
 
+from config import settings
 from db.database import Base
 from sqlalchemy import Column, DateTime
 from sqlalchemy import DateTime, ForeignKey, Integer, String, Text
@@ -61,7 +62,8 @@ class DbPost(Base):
 
     @property
     def image_path(self) -> str:
-        return f"/media/posts/{self.image_file}"
+        return f"https://{settings.s3_bucket_name}.s3.{settings.s3_region}.amazonaws.com/posts/{self.image_file}"
+    
 
 class DbComment(Base):
 
