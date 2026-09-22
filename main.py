@@ -4,6 +4,7 @@ from routers import post, post_comment, post_like, user
 from db.database import engine
 from fastapi.staticfiles import StaticFiles
 from auth import authentication
+import logfire
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
@@ -13,6 +14,9 @@ async def lifespan(_app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+
+logfire.configure()
+logfire.instrument_fastapi(app)
 
 app.include_router(post.router)
 app.include_router(user.router)
