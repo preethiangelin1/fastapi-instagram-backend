@@ -1,6 +1,6 @@
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 from datetime import datetime
-from typing import List
+from typing import List, Literal, Optional
 
 class UserBase(BaseModel):
     username: str = Field(min_length=1, max_length=50)
@@ -8,6 +8,7 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str = Field(min_length=8)
+    is_private: bool
 
 class UserPublic(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -64,6 +65,14 @@ class PostResponse(BaseModel):
     comments: List[Comment] = []
     likes: List[Like] = []
 
+class CursorOut(BaseModel):
+    created_at: datetime
+    id: int
+
+class FeedResponse(BaseModel):
+    posts: list[PostResponse]
+    next_cursor: Optional[CursorOut] = None
+    has_more: bool
 
 class UserAuth(BaseModel):
     id: int
@@ -84,4 +93,5 @@ class ChangePasswordRequest(BaseModel):
     current_password: str
     new_password: str = Field(min_length=8)
 
-    
+class FollowRequestUpdate(BaseModel):
+    status: Literal["accepted", "rejected"]  

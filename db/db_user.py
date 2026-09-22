@@ -1,5 +1,4 @@
 from typing import Annotated
-
 from fastapi import Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import func, select
@@ -34,7 +33,8 @@ async def create_user(db: AsyncSession, request: UserCreate):
     new_user = DbUser(
         username=request.username,
         email=request.email,
-        password=Hash.hash(request.password)
+        password=Hash.hash(request.password),
+        is_private=request.is_private
     )
 
     db.add(new_user)
@@ -53,4 +53,14 @@ async def get_user_by_username(db: AsyncSession, username: str):
     if not existing_user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User with username {username} not found")
     return existing_user
-    
+
+async def get_user_by_id(db: AsyncSession, id: int):
+    result = await db.execute(
+        select(DbUser).where(
+            DbUser.id == id,
+        ),
+    )
+    existing_user = result.scalars().first()
+    if not existing_user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User with id {id} not found")
+    return existing_user
