@@ -1,9 +1,8 @@
 from datetime import UTC, datetime
-
 from config import settings
 from db.database import Base
-from sqlalchemy import Column, DateTime
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import DateTime
+from sqlalchemy import DateTime, ForeignKey, Integer, String, Boolean, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 class DbUser(Base):
@@ -15,6 +14,7 @@ class DbUser(Base):
     email: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
     password: Mapped[str] = mapped_column(String(200), nullable=False)
     bio: Mapped[str] = mapped_column(String(300), nullable=True)
+    is_private: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default="false")
     image_file: Mapped[str | None] = mapped_column(
         String(200),
         nullable=True,
@@ -28,6 +28,12 @@ class DbUser(Base):
     reset_tokens: Mapped[list[PasswordResetToken]] = relationship(
         back_populates="user",
         cascade="all, delete-orphan",
+    )
+    following = relationship(
+        "DbFollow", foreign_keys="DbFollow.follower_id", back_populates="follower"
+    )
+    followers = relationship(
+        "DbFollow", foreign_keys="DbFollow.followee_id", back_populates="followee"
     )
 
     @property
@@ -63,7 +69,18 @@ class DbPost(Base):
     @property
     def image_path(self) -> str:
         return f"https://{settings.s3_bucket_name}.s3.{settings.s3_region}.amazonaws.com/posts/{self.image_file}"
-    
+
+class DbFollow(Base):
+
+    __tablename__ = "follows"
+
+    follower_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), primary_key=True)
+    followee_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), primary_key=True)
+    status: Mapped[str] = mapped_column(String(10), nullable=False, default="accepted", server_default="accepted")
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, server_default=func.now())
+
+    follower = relationship("DbUser", foreign_keys=[follower_id], back_populates="following")
+    followee = relationship("DbUser", foreign_keys=[followee_id], back_populates="followers")
 
 class DbComment(Base):
 
