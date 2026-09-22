@@ -1,10 +1,8 @@
 from pathlib import Path
 from uuid import uuid4
-import shutil
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
-from schemas import PostBase
 from db.models import DbPost
 from sqlalchemy import select
 from schemas import UserAuth
@@ -12,10 +10,7 @@ from fastapi import HTTPException, UploadFile, status, Depends
 from typing import Annotated
 from db.database import get_db
 from integrations.s3 import upload_post_image, delete_post_image
-
-MEDIA_POSTS_DIR = Path("media/posts")
-MEDIA_POSTS_DIR.mkdir(parents=True, exist_ok=True)
-
+import logfire
 
 async def create_post(db: AsyncSession, image: UploadFile, caption: str, current_user: UserAuth ):
     allowed_types = {
@@ -30,12 +25,15 @@ async def create_post(db: AsyncSession, image: UploadFile, caption: str, current
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Only JPEG, PNG, AVIF, WebP images are allowed",
         )
+    with logfire.span("post_upload", upload_method="server_proxy", user_id=current_user.id) as span:
+        extension = Path(image.filename).suffix.lower()
+        filename = f"{uuid4()}{extension}"
+        with logfire.span("read image body"):
+            file_bytes = await image.read()
+        span.set_attribute("file_size_bytes", len(file_bytes))
 
-    extension = Path(image.filename).suffix.lower()
-    filename = f"{uuid4()}{extension}"
-    file_bytes = await image.read()
-
-    await upload_post_image(file_bytes, filename)
+        with logfire.span("s3_upload"):
+            await upload_post_image(file_bytes, filename)
 
     new_post = DbPost(
         image_file=filename,
