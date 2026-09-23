@@ -24,12 +24,10 @@ class UserPrivate(UserPublic):
 class PostBase(BaseModel):
     caption: str = Field(min_length=1, max_length=100)
     image_file: str
-    image_path: str
 
 
 class PostCreate(PostBase):
     pass
-
 
 # For PostResponse
 class User(BaseModel):
@@ -95,3 +93,11 @@ class ChangePasswordRequest(BaseModel):
 
 class FollowRequestUpdate(BaseModel):
     status: Literal["accepted", "rejected"]  
+
+class PresignRequest(BaseModel):
+    content_type: str
+
+class PresignResponse(BaseModel):
+    upload_url: str
+    key: str
+    cdn_url: str

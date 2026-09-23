@@ -14,6 +14,8 @@ class Settings(BaseSettings):
     s3_secret_access_key: SecretStr | None = None
     s3_endpoint_url: str | None = None
 
+    cloudfront_domain: str
+
     secret_key: SecretStr
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 30

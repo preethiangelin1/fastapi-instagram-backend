@@ -9,7 +9,7 @@ from schemas import FollowRequestUpdate
 router = APIRouter(prefix="/users", tags=["follows"])
 
 @router.post("/{user_id}/follows", status_code=status.HTTP_201_CREATED)
-async def create_follow(user_id: int, db: Annotated[AsyncSession, Depends(get_db)],  current_user: CurrentUser,):
+async def create_follow(user_id: int, db: Annotated[AsyncSession, Depends(get_db)],  current_user: CurrentUser):
     return await db_follow.create(db, current_user, user_id)
 
 @router.get("/me/followers")

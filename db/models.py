@@ -68,7 +68,7 @@ class DbPost(Base):
 
     @property
     def image_path(self) -> str:
-        return f"https://{settings.s3_bucket_name}.s3.{settings.s3_region}.amazonaws.com/posts/{self.image_file}"
+        return f"{settings.cloudfront_domain}/{self.image_file}"
 
 class DbFollow(Base):
 

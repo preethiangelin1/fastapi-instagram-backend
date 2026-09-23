@@ -5,39 +5,23 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from db.models import DbPost
 from sqlalchemy import select
-from schemas import UserAuth
-from fastapi import HTTPException, UploadFile, status, Depends
+from schemas import PostBase, UserAuth
+from fastapi import HTTPException, status, Depends
 from typing import Annotated
 from db.database import get_db
-from integrations.s3 import upload_post_image, delete_post_image
+from integrations.s3 import head_object, delete_post_image
 import logfire
+from botocore.exceptions import ClientError
 
-async def create_post(db: AsyncSession, image: UploadFile, caption: str, current_user: UserAuth ):
-    allowed_types = {
-        "image/jpeg",
-        "image/png",
-        "image/webp",
-        "image/avif"
-    }
-
-    if image.content_type not in allowed_types:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Only JPEG, PNG, AVIF, WebP images are allowed",
-        )
-    with logfire.span("post_upload", upload_method="server_proxy", user_id=current_user.id) as span:
-        extension = Path(image.filename).suffix.lower()
-        filename = f"{uuid4()}{extension}"
-        with logfire.span("read image body"):
-            file_bytes = await image.read()
-        span.set_attribute("file_size_bytes", len(file_bytes))
-
-        with logfire.span("s3_upload"):
-            await upload_post_image(file_bytes, filename)
+async def create_post(post: PostBase, db: AsyncSession, current_user: UserAuth ):
+    try:
+        await head_object(post.image_file)
+    except ClientError:
+        raise HTTPException(400, "Upload not found")
 
     new_post = DbPost(
-        image_file=filename,
-        caption=caption,
+        image_file=post.image_file,
+        caption=post.caption,
         user_id=current_user.id
     )
 
