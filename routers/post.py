@@ -1,10 +1,9 @@
 from typing import List
-from fastapi import APIRouter, Form, status, Depends, HTTPException, UploadFile,File
+from fastapi import APIRouter, status, Depends, UploadFile,File
 from schemas import PostBase, PostResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from db.database import get_db
 from db import db_post
-from db.models import DbPost
 import random
 import string
 import shutil

@@ -1,5 +1,3 @@
-from pathlib import Path
-from uuid import uuid4
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -11,7 +9,6 @@ from fastapi import HTTPException, status, Depends
 from typing import Annotated
 from db.database import get_db
 from integrations.s3 import head_object, delete_post_image
-import logfire
 from botocore.exceptions import ClientError
 
 async def create_post(post: PostBase, db: AsyncSession, current_user: UserAuth ):

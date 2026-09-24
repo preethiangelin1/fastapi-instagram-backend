@@ -2,7 +2,7 @@ from datetime import UTC, datetime
 from config import settings
 from db.database import Base
 from sqlalchemy import DateTime
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Boolean, func
+from sqlalchemy import ForeignKey, Integer, String, Boolean, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 class DbUser(Base):
