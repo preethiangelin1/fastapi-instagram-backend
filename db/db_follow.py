@@ -1,7 +1,8 @@
 from fastapi import HTTPException, status as http_status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_
-from db.models import DbComment, DbFollow
+from analytics import Action, track
+from db.models import DbFollow
 from auth.oauth2 import CurrentUser
 from db.db_user import get_user_by_id
 
@@ -19,6 +20,7 @@ async def create(db: AsyncSession, current_user:CurrentUser, user_id:int):
     db.add(new_follow)
     await db.commit()
     await db.refresh(new_follow)
+    track(Action.USER_FOLLOWED, user_id=current_user.id, followee_id=user_id)
     return new_follow
 
 async def get_followers(db: AsyncSession, current_user:CurrentUser):

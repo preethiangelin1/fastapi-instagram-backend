@@ -1,13 +1,13 @@
 from typing import Annotated
 from datetime import UTC, datetime, timedelta
-from auth.oauth2 import CurrentUser, get_current_user
+from analytics import Action, track
+from auth.oauth2 import CurrentUser
 from config import settings
-from schemas import UserAuth, UserCreate, UserPrivate, ForgotPasswordRequest, ResetPasswordRequest, ChangePasswordRequest
+from schemas import UserCreate, UserPrivate, ForgotPasswordRequest, ResetPasswordRequest, ChangePasswordRequest
 from fastapi import APIRouter, status, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 from db.database import get_db
 from db import db_user, models
-from db.models import DbUser, PasswordResetToken
 from sqlalchemy import select, func
 from sqlalchemy import delete as sql_delete
 from db.hashing import Hash
@@ -17,6 +17,7 @@ router = APIRouter(prefix="/users", tags=["user"])
 
 @router.post("/", response_model=UserPrivate, status_code=status.HTTP_201_CREATED)
 async def create_user(user: UserCreate, db: Annotated[AsyncSession, Depends(get_db)]):
+    track(Action.SIGNUP_ATTEMPTED)
     return await db_user.create_user(db, user)
 
 @router.post("/forgot-password", status_code=status.HTTP_202_ACCEPTED)

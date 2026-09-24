@@ -1,13 +1,10 @@
 from datetime import datetime
-
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from db.models import DbFollow, DbPost, DbUser
 from auth.oauth2 import CurrentUser
 from sqlalchemy import select, or_, and_, tuple_
-
 from schemas import CursorOut
-
 
 async def get_feed(
         db: AsyncSession, 

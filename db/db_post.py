@@ -3,6 +3,7 @@ from uuid import uuid4
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
+from analytics import Action, track, track_error
 from db.models import DbPost
 from sqlalchemy import select
 from schemas import PostBase, UserAuth
@@ -14,9 +15,11 @@ import logfire
 from botocore.exceptions import ClientError
 
 async def create_post(post: PostBase, db: AsyncSession, current_user: UserAuth ):
+    track(Action.POST_CREATE_ATTEMPTED, user_id=current_user.id)
     try:
         await head_object(post.image_file)
     except ClientError:
+        track_error(Action.POST_CREATE_FAILED, user_id=current_user.id, reason="Upload not found in s3")
         raise HTTPException(400, "Upload not found")
 
     new_post = DbPost(
@@ -28,6 +31,8 @@ async def create_post(post: PostBase, db: AsyncSession, current_user: UserAuth )
     db.add(new_post)
     await db.commit()
     await db.refresh(new_post, attribute_names=["author", "comments", "likes"])
+
+    track(Action.POST_CREATED, user_id=current_user.id, post_id=new_post.id)
 
     return new_post
 
@@ -85,5 +90,7 @@ async def delete_post(id: int, db:  Annotated[AsyncSession, Depends(get_db)], cu
 
     await db.delete(existing_post)
     await db.commit()
+
+
 
         
