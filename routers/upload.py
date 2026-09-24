@@ -1,8 +1,5 @@
 import uuid
-import boto3
-from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
-from botocore.config import Config
+from fastapi import APIRouter, HTTPException
 
 from config import settings
 from auth.oauth2 import CurrentUser

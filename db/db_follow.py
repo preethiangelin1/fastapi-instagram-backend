@@ -9,7 +9,7 @@ from db.db_user import get_user_by_id
 async def create(db: AsyncSession, current_user:CurrentUser, user_id:int):
 
     user = await get_user_by_id(db, user_id)
-    status = 'pending' if user.is_private == True else 'accepted'
+    status = 'pending' if user.is_private else 'accepted'
 
     new_follow = DbFollow(
         follower_id = current_user.id,
@@ -51,7 +51,7 @@ async def update_request(db: AsyncSession, follower_id: int, followee_id: int, s
     follow = result.scalars().first()
 
     if not follow:
-        raise HTTPException(status_code=http_status.HTTP_404_NOT_FOUND, detail=f"Follow request not found")
+        raise HTTPException(status_code=http_status.HTTP_404_NOT_FOUND, detail="Follow request not found")
 
     follow.status = status
     await db.commit()
