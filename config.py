@@ -6,7 +6,8 @@ class Settings(BaseSettings):
         env_file=".env",
         env_file_encoding="utf-8",
     )
-    database_url: str
+    database_url_direct: str
+    database_url_pooled: str
 
     s3_bucket_name: str
     s3_region: str = "ap-southeast-2"

@@ -17,6 +17,8 @@ app = FastAPI(lifespan=lifespan)
 
 logfire.configure()
 logfire.instrument_fastapi(app)
+logfire.instrument_pydantic()
+logfire.instrument_sqlalchemy(engine=engine)
 
 app.include_router(post.router)
 app.include_router(user.router)
