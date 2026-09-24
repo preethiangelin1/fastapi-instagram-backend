@@ -1,7 +1,7 @@
-from typing import Annotated
-from fastapi import Depends, HTTPException, status
+from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import func, select
+from analytics import Action, track, track_error
 from schemas import UserCreate
 from db.models import DbUser
 from db.hashing import Hash
@@ -15,6 +15,7 @@ async def create_user(db: AsyncSession, request: UserCreate):
     existing_user = result.scalars().first()
 
     if existing_user:
+        track_error(Action.SIGNUP_FAILED, reason="user_exists")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Username already exists",
@@ -34,13 +35,15 @@ async def create_user(db: AsyncSession, request: UserCreate):
         username=request.username,
         email=request.email,
         password=Hash.hash(request.password),
-        is_private=request.is_private
+        is_private=request.is_private,
+        full_name=request.full_name
     )
 
     db.add(new_user)
     await db.commit()
     await db.refresh(new_user)
 
+    track(Action.USER_SIGNED_UP, user_id=new_user.id)
     return new_user
 
 async def get_user_by_username(db: AsyncSession, username: str):

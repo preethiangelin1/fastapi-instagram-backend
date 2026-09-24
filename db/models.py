@@ -13,6 +13,7 @@ class DbUser(Base):
     username: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
     email: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
     password: Mapped[str] = mapped_column(String(200), nullable=False)
+    full_name: Mapped[str] = mapped_column(String(200), nullable=False)
     bio: Mapped[str] = mapped_column(String(300), nullable=True)
     is_private: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default="false")
     image_file: Mapped[str | None] = mapped_column(

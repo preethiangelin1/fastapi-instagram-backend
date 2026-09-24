@@ -1,5 +1,4 @@
 from datetime import datetime
-
 from fastapi import APIRouter, Depends
 from db import db_feed
 from db.database import get_db

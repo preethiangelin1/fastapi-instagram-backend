@@ -1,5 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from analytics import Action, track
 from db.models import DbLike
 from schemas import UserAuth
 
@@ -10,6 +11,7 @@ async def create(db: AsyncSession, current_user:UserAuth, post_id:int):
     await db.commit()
     await db.refresh(new_like)
 
+    track(Action.POST_LIKED, user_id=current_user.id, post_id=post_id)
     return new_like
 
 async def get_all(db: AsyncSession, post_id: int):

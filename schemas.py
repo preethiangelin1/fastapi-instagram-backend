@@ -5,6 +5,7 @@ from typing import List, Literal, Optional
 class UserBase(BaseModel):
     username: str = Field(min_length=1, max_length=50)
     email: EmailStr = Field(max_length=120)
+    full_name: str = Field(min_length=1, max_length=200)
 
 class UserCreate(UserBase):
     password: str = Field(min_length=8)
@@ -15,6 +16,8 @@ class UserPublic(BaseModel):
 
     id: int
     username: str
+    full_name: str
+    is_private: bool
     image_file: str | None
     image_path: str
 
@@ -24,7 +27,6 @@ class UserPrivate(UserPublic):
 class PostBase(BaseModel):
     caption: str = Field(min_length=1, max_length=100)
     image_file: str
-
 
 class PostCreate(PostBase):
     pass
