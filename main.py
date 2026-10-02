@@ -2,7 +2,6 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from routers import feed, post, post_comment, post_like, upload, user, user_follow
 from db.database import engine
-from fastapi.staticfiles import StaticFiles
 from auth import authentication
 import logfire
 
