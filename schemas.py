@@ -41,6 +41,7 @@ class User(BaseModel):
 class Comment(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
+    id: int
     text: str
     username: str
     created_at: datetime
