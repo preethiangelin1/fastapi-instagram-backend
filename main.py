@@ -28,5 +28,3 @@ app.include_router(post_like.router)
 app.include_router(user_follow.router)
 app.include_router(feed.router)
 app.include_router(upload.router)
-
-app.mount("/media", StaticFiles(directory="media"), name="media")
