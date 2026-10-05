@@ -9,7 +9,7 @@ from db import db_user
 from db.models import DbUser
 from config import settings
  
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/login")
 
 SECRET_KEY = settings.secret_key.get_secret_value()
 ALGORITHM = settings.algorithm
