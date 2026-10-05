@@ -20,12 +20,8 @@ async def create_post(
     
     return await db_post.create_post(post, db, current_user)
 
-@router.get("/", response_model=List[PostResponse])
-async def get_all_posts(db: AsyncSession = Depends(get_db)):
-    return await db_post.get_all(db)
-
 @router.get('/{id}', response_model=PostResponse)
-async def get_post(id: int, db: AsyncSession = Depends(get_db)):
+async def get_post(id: int, db: AsyncSession = Depends(get_db), current_user: UserAuth = Depends(get_current_user)):
     return await db_post.get_post(id, db)
 
 @router.post("/image-upload")
