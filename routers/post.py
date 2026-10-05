@@ -1,4 +1,3 @@
-from typing import List
 from fastapi import APIRouter, status, Depends, UploadFile,File
 from schemas import PostBase, PostResponse
 from sqlalchemy.ext.asyncio import AsyncSession
